@@ -1713,10 +1713,10 @@ minimatch@^3.1.2:
   dependencies:
     brace-expansion "^1.1.7"
 
-modal-ocr-yanis@^1.1.1:
-  version "1.1.1"
-  resolved "https://registry.npmjs.org/modal-ocr-yanis/-/modal-ocr-yanis-1.1.1.tgz"
-  integrity sha512-c400Ap/TRfg5BoKACBEqqHmKaFI9u9/7VRqu8OkzdkVfAbC1wlnd9sf3QT8hYRfuWJyw3R6dmFqm8YFhhcHmPw==
+modal-ocr-yanis@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.npmjs.org/modal-ocr-yanis/-/modal-ocr-yanis-1.2.1.tgz"
+  integrity sha512-7HEP2qy3o/62B4BsdPXmreXQGLKttYXQsFE3ewQoLgvf+dJl3MkqwEPkHERY0EFaBJo08N6kDmxu/UkbfQNY2w==
 
 ms@^2.1.3:
   version "2.1.3"

@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import Select from 'react-select';
-//import Modal from './Modal';
+import Modal from './Modal';
 import useEmployeeStore from '../store/employeeStore';
 import states from '../data/states';
 import 'react-datepicker/dist/react-datepicker.css';
 import '../assets/app.css';
-import Modal from 'modal-ocr-yanis';
+//Commenter ./Modal et décommenter ceci
+//import Modal from 'modal-ocr-yanis';
 
 function CreateEmployee() {
     const [employee, setEmployee] = useState({
