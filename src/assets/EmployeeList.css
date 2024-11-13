@@ -1,31 +1,217 @@
-.container {
+/* Variables CSS pour la cohérence des couleurs et des valeurs */
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --background-color: #f8f9fa;
+    --border-color: #ddd;
+    --hover-color: #f5f5f5;
+    --text-color: #333;
+    --light-text: #666;
+    --white: #fff;
+    --transition: all 0.3s ease;
+}
+
+/* Style du conteneur principal */
+.employee-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    background-color: var(--white);
 }
 
-.employee-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-}
-
-.employee-table th,
-.employee-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-}
-
-.employee-table th {
-    background-color: #f2f2f2;
+/* Style du titre */
+h1 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2em;
     font-weight: bold;
 }
 
-.employee-table tr:nth-child(even) {
-    background-color: #f9f9f9;
+/* Contrôles supérieurs */
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-.employee-table tr:hover {
-    background-color: #f5f5f5;
+/* Style du sélecteur d'entrées */
+.entries-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.entries-control select {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--white);
+    cursor: pointer;
+}
+
+/* Style de la barre de recherche */
+.search-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-control input {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    width: 200px;
+    transition: var(--transition);
+}
+
+.search-control input:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+/* Style du conteneur de table */
+.table-container {
+    overflow-x: auto;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles de la table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--white);
+}
+
+th,
+td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Style des en-têtes de colonnes triables */
+.sortable-header {
+    cursor: pointer;
+    background-color: var(--primary-color);
+    color: var(--white);
+    position: relative;
+    padding-right: 25px;
+    transition: var(--transition);
+}
+
+.sortable-header:hover {
+    background-color: #34495e;
+}
+
+.sort-indicator {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8em;
+}
+
+/* Style des lignes */
+tbody tr {
+    transition: var(--transition);
+}
+
+tbody tr:hover {
+    background-color: var(--hover-color);
+}
+
+tbody tr:nth-child(even) {
+    background-color: var(--background-color);
+}
+
+/* Contrôles de pagination */
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding: 10px 0;
+}
+
+.entries-info {
+    color: var(--light-text);
+}
+
+.pagination-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.page-button {
+    padding: 8px 15px;
+    border: 1px solid var(--border-color);
+    background-color: var(--white);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.page-button:hover:not(:disabled) {
+    background-color: var(--secondary-color);
+    color: var(--white);
+    border-color: var(--secondary-color);
+}
+
+.page-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.current-page {
+    padding: 8px 15px;
+    background-color: var(--secondary-color);
+    color: var(--white);
+    border-radius: 4px;
+}
+
+/* Style du lien de retour */
+.home-link {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.home-link a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.home-link a:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .controls {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .search-control input {
+        width: 100%;
+    }
+
+    .pagination-controls {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+
+    .table-container {
+        margin: 0 -20px;
+        border-radius: 0;
+    }
 }
