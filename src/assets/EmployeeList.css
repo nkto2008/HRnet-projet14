@@ -1,31 +1,21 @@
-/* Variables CSS pour la cohérence des couleurs et des valeurs */
-:root {
-    --primary-color: #2c3e50;
-    --secondary-color: #3498db;
-    --background-color: #f8f9fa;
-    --border-color: #ddd;
-    --hover-color: #f5f5f5;
-    --text-color: #333;
-    --light-text: #666;
-    --white: #fff;
-    --transition: all 0.3s ease;
-}
 
-/* Style du conteneur principal */
+
+/* Styles de base */
 .employee-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: var(--white);
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
 }
 
-/* Style du titre */
 h1 {
-    color: var(--primary-color);
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
     text-align: center;
-    margin-bottom: 30px;
-    font-size: 2em;
-    font-weight: bold;
+    margin-bottom: 2rem;
+    background: linear-gradient(to right, var(--primary), var(--primary-hover));
+    -webkit-background-clip: text;
+    color: transparent;
 }
 
 /* Contrôles supérieurs */
@@ -33,87 +23,113 @@ h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
 }
 
 /* Style du sélecteur d'entrées */
 .entries-control {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.75rem;
+    color: var(--text-secondary);
 }
 
 .entries-control select {
-    padding: 5px 10px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background-color: var(--white);
+    padding: 0.5rem 2.5rem 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background-color: var(--surface);
+    color: var(--text-primary);
     cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 1.5em 1.5em;
+    transition: var(--transition);
+}
+
+.entries-control select:hover {
+    border-color: var(--primary);
 }
 
 /* Style de la barre de recherche */
 .search-control {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.75rem;
 }
 
 .search-control input {
-    padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    width: 200px;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    width: 250px;
     transition: var(--transition);
+    color: var(--text-primary);
+    background-color: var(--surface);
 }
 
 .search-control input:focus {
     outline: none;
-    border-color: var(--secondary-color);
-    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* Style du conteneur de table */
 .table-container {
-    overflow-x: auto;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin: 1rem 0;
 }
 
 /* Styles de la table */
 table {
     width: 100%;
-    border-collapse: collapse;
-    background-color: var(--white);
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 th,
 td {
-    padding: 12px 15px;
+    padding: 1rem;
     text-align: left;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border);
 }
 
 /* Style des en-têtes de colonnes triables */
 .sortable-header {
+    background-color: var(--surface);
+    color: var(--text-primary);
+    font-weight: 600;
     cursor: pointer;
-    background-color: var(--primary-color);
-    color: var(--white);
-    position: relative;
-    padding-right: 25px;
     transition: var(--transition);
+    position: relative;
+    padding-right: 2rem;
+    white-space: nowrap;
 }
 
 .sortable-header:hover {
-    background-color: #34495e;
+    background-color: #f1f5f9;
 }
 
 .sort-indicator {
     position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 0.8em;
+    right: 0.75rem;
+    opacity: 0.5;
+    transition: var(--transition);
+}
+
+.sortable-header:hover .sort-indicator {
+    opacity: 1;
 }
 
 /* Style des lignes */
@@ -122,11 +138,11 @@ tbody tr {
 }
 
 tbody tr:hover {
-    background-color: var(--hover-color);
+    background-color: #f8fafc;
 }
 
-tbody tr:nth-child(even) {
-    background-color: var(--background-color);
+tbody tr:last-child td {
+    border-bottom: none;
 }
 
 /* Contrôles de pagination */
@@ -134,33 +150,40 @@ tbody tr:nth-child(even) {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 20px;
-    padding: 10px 0;
+    padding: 1rem;
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .entries-info {
-    color: var(--light-text);
+    color: var(--text-secondary);
 }
 
 .pagination-buttons {
     display: flex;
-    gap: 10px;
+    gap: 0.5rem;
     align-items: center;
 }
 
 .page-button {
-    padding: 8px 15px;
-    border: 1px solid var(--border-color);
-    background-color: var(--white);
-    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+    border-radius: var(--radius);
+    color: var(--text-primary);
     cursor: pointer;
     transition: var(--transition);
+    font-weight: 500;
 }
 
 .page-button:hover:not(:disabled) {
-    background-color: var(--secondary-color);
-    color: var(--white);
-    border-color: var(--secondary-color);
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
 }
 
 .page-button:disabled {
@@ -169,35 +192,54 @@ tbody tr:nth-child(even) {
 }
 
 .current-page {
-    padding: 8px 15px;
-    background-color: var(--secondary-color);
-    color: var(--white);
-    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    background-color: var(--primary);
+    color: white;
+    border-radius: var(--radius);
+    font-weight: 500;
 }
 
 /* Style du lien de retour */
 .home-link {
-    margin-top: 20px;
+    margin-top: 2rem;
     text-align: center;
 }
 
 .home-link a {
-    color: var(--secondary-color);
+    color: var(--primary);
     text-decoration: none;
     font-weight: 500;
     transition: var(--transition);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
 }
 
 .home-link a:hover {
-    color: var(--primary-color);
-    text-decoration: underline;
+    color: var(--primary-hover);
+    background-color: rgba(37, 99, 235, 0.1);
 }
 
-/* Responsive design */
+/* Responsive design amélioré */
+@media (max-width: 1024px) {
+    .table-container {
+        margin: 0 -1rem;
+        border-radius: 0;
+    }
+
+    th,
+    td {
+        padding: 0.75rem;
+    }
+}
+
 @media (max-width: 768px) {
     .controls {
         flex-direction: column;
-        gap: 15px;
+        align-items: stretch;
+    }
+
+    .search-control {
+        width: 100%;
     }
 
     .search-control input {
@@ -206,12 +248,47 @@ tbody tr:nth-child(even) {
 
     .pagination-controls {
         flex-direction: column;
-        gap: 15px;
         text-align: center;
     }
 
-    .table-container {
-        margin: 0 -20px;
-        border-radius: 0;
+    .entries-info {
+        order: 2;
     }
+
+    .pagination-buttons {
+        order: 1;
+        justify-content: center;
+    }
+}
+
+/* Animation de chargement */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.loading {
+    background: linear-gradient(90deg,
+            #f0f0f0 25%,
+            #f8f8f8 50%,
+            #f0f0f0 75%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+}
+
+/* État vide */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+}
+
+.empty-state p {
+    margin: 1rem 0;
+    font-size: 1.125rem;
 }

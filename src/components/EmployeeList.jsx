@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import useEmployeeStore from '../store/employeeStore';
 import '../assets/EmployeeList.css'; // Import du fichier CSS
+import '../assets/app.css'
 
 const EmployeeList = () => {
     // État global des employés via le store
