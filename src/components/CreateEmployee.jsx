@@ -1,162 +1,216 @@
 /**
  * CreateEmployee.jsx
- * Composant principal pour la création d'employés
- * Style harmonisé avec EmployeeList et design moderne
+ * 
+ * Ce fichier contient le formulaire de création d'employés.
+ * C'est comme une fiche d'inscription numérique pour ajouter de nouveaux employés à l'entreprise.
+ * 
+
  */
 
-// Imports des dépendances et ressources nécessaires
-import states from '../data/states';                                   // Liste des états pour le select
-import 'react-datepicker/dist/react-datepicker.css';                  // Styles du date picker
-import '../assets/CreateEmployee.css';                                         // Styles personnalisés
-import '../assets/app.css'
-import React, { useState, lazy, Suspense, memo } from 'react';        // Hooks et composants React
-import { Link } from 'react-router-dom';                              // Navigation
-import { Helmet } from 'react-helmet-async';                          // Gestion du head HTML
-import useEmployeeStore from '../store/employeeStore';                // Store global des employés
+// ======= IMPORTS (chargement des outils nécessaires) =======
+// Outils de base React pour créer notre interface
+import React, { useState, lazy, Suspense, useCallback, useMemo } from 'react';
+// Outil pour la navigation entre les pages
+import { Link } from 'react-router-dom';
+// Outil pour gérer le titre de la page et les métadonnées
+import { Helmet } from 'react-helmet-async';
+// Notre système de stockage de données
+import useEmployeeStore from '../store/employeeStore';
+// Liste des états américains pour le menu déroulant
+import states from '../data/states';
+// Styles visuels de notre formulaire
+import '../assets/CreateEmployee.css';
+import '../assets/app.css';
+import logo from '../assets/logo.png'
 
-// Chargement paresseux des composants lourds
-const DatePicker = lazy(() => import('react-datepicker'));           // Sélecteur de date
-const Select = lazy(() => import('react-select'));                    // Menu déroulant amélioré
-const Modal = lazy(() => import('modal-ocr-yanis'));                 // Modal personnalisée
+// Chargement intelligent des composants lourds
+// Ces composants ne sont chargés que lorsqu'on en a besoin (comme charger une voiture seulement quand on veut conduire)
+const Select = lazy(() => import('react-select'));               // Menu déroulant amélioré
+const DatePicker = lazy(() => import('react-datepicker'));      // Sélecteur de date
+const Modal = lazy(() => import('modal-ocr-yanis'));            // Fenêtre pop-up de confirmation
 
-// Mémoisation des composants de formulaire pour éviter les re-renders inutiles
-const MemoizedSelect = memo(Select);
-const MemoizedDatePicker = memo(DatePicker);
+// Chargement du style du sélecteur de date
+import('react-datepicker/dist/react-datepicker.css');
+
+// ======= DONNÉES INITIALES =======
+// Structure vide d'un nouvel employé (comme un formulaire vierge)
+const INITIAL_EMPLOYEE = {
+    firstName: '',          // Prénom
+    lastName: '',           // Nom
+    dateOfBirth: null,      // Date de naissance
+    startDate: null,        // Date de début
+    street: '',            // Rue
+    city: '',              // Ville
+    state: '',             // État/Région
+    zipCode: '',           // Code postal
+    department: 'Sales'     // Département (par défaut: Ventes)
+};
+
+// Liste des départements disponibles (comme une liste de services dans l'entreprise)
+// Object.freeze empêche toute modification accidentelle de cette liste
+const DEPARTMENT_OPTIONS = Object.freeze([
+    { value: 'Sales', label: 'Sales' },                     // Ventes
+    { value: 'Marketing', label: 'Marketing' },             // Marketing
+    { value: 'Engineering', label: 'Engineering' },         // Ingénierie
+    { value: 'Human Resources', label: 'Human Resources' }, // Ressources Humaines
+    { value: 'Legal', label: 'Legal' }                      // Juridique
+]);
+
+// ======= COMPOSANTS RÉUTILISABLES =======
 
 /**
- * Configuration des options de département
- * Liste statique des départements disponibles
+ * FormField : Composant pour créer un champ de formulaire standard
+ * C'est comme un moule pour créer des champs de saisie identiques
+ * 
+ * Props (paramètres):
+ * - label: Le texte affiché au-dessus du champ
+ * - id: Identifiant unique du champ
+ * - type: Type de champ (texte, nombre, etc.)
+ * - value: La valeur actuelle du champ
+ * - onChange: Fonction qui gère les changements
+ * - required: Si le champ est obligatoire
  */
-const DEPARTMENT_OPTIONS = [
-    { value: 'Sales', label: 'Sales' },
-    { value: 'Marketing', label: 'Marketing' },
-    { value: 'Engineering', label: 'Engineering' },
-    { value: 'Human Resources', label: 'Human Resources' },
-    { value: 'Legal', label: 'Legal' }
-];
+const FormField = React.memo(({ label, id, type = 'text', value, onChange, required = true }) => (
+    <div className="form-group">
+        <label htmlFor={id}>{label}</label>
+        <input
+            type={type}
+            id={id}
+            className="form-input"
+            value={value}
+            onChange={onChange}
+            required={required}
+            aria-label={label}
+        />
+    </div>
+));
 
 /**
- * Composant CreateEmployee
- * Gère le formulaire de création d'employé avec validation et retour utilisateur
+ * DatePickerField : Composant pour sélectionner une date
+ * C'est un champ spécial qui affiche un calendrier pour choisir une date
+ * 
+ * Props:
+ * - label: Texte affiché au-dessus du calendrier
+ * - id: Identifiant unique
+ * - selected: Date actuellement sélectionnée
+ * - onChange: Fonction appelée quand on change la date
+ */
+const DatePickerField = React.memo(({ label, id, selected, onChange }) => (
+    <div className="form-group">
+        <label htmlFor={id}>{label}</label>
+        <div className="date-picker-container">
+            <DatePicker
+                id={id}
+                selected={selected}
+                onChange={onChange}
+                className="date-picker-input"
+                required
+                placeholderText="Select date"
+                aria-label={label}
+            />
+        </div>
+    </div>
+));
+
+/**
+ * CreateEmployee : Le composant principal qui gère tout le formulaire
+ * C'est comme le chef d'orchestre qui coordonne tous les éléments
  */
 function CreateEmployee() {
-    // État initial de l'employé
-    const [employee, setEmployee] = useState({
-        firstName: '',
-        lastName: '',
-        dateOfBirth: null,
-        startDate: null,
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        department: 'Sales'
-    });
+    // ======= ÉTATS (comme la mémoire du formulaire) =======
+    // employee : Stocke toutes les informations de l'employé qu'on est en train de créer
+    const [employee, setEmployee] = useState(INITIAL_EMPLOYEE);
 
-    // État des modales
-    const [modals, setModals] = useState({
-        success: false,        // Modal de confirmation de création
-        details: false,        // Modal affichant les détails de l'employé créé
-    });
+    // modals : Gère l'affichage des fenêtres pop-up de confirmation
+    const [modals, setModals] = useState({ success: false, details: false });
 
-    // Accès à la fonction d'ajout d'employé du store
+    // addEmployee : Fonction pour ajouter un nouvel employé dans notre base
     const addEmployee = useEmployeeStore(state => state.addEmployee);
 
+    // ======= GESTIONNAIRES D'ÉVÉNEMENTS =======
     /**
-     * Gère les changements dans les champs input
-     * @param {React.ChangeEvent} e - Événement de changement
+     * handleInputChange : Gère les changements dans les champs texte
+     * C'est comme un secrétaire qui note chaque modification
      */
-    const handleInputChange = (e) => {
+    const handleInputChange = useCallback((e) => {
         const { id, value } = e.target;
         setEmployee(prev => ({ ...prev, [id]: value }));
-    };
+    }, []);
 
     /**
-     * Gère la sélection d'état/région
-     * @param {Object} selectedOption - Option sélectionnée dans le Select
+     * handleStateChange : Gère la sélection de l'état/région
+     * S'active quand on choisit un état dans le menu déroulant
      */
-    const handleStateChange = (selectedOption) => {
+    const handleStateChange = useCallback((selectedOption) => {
         setEmployee(prev => ({ ...prev, state: selectedOption.value }));
-    };
+    }, []);
 
     /**
-     * Gère les changements de date
-     * @param {Date} date - Date sélectionnée
-     * @param {string} field - Champ à mettre à jour ('dateOfBirth' ou 'startDate')
+     * handleDateChange : Gère les changements de date
+     * S'active quand on choisit une date dans le calendrier
      */
-    const handleDateChange = (date, field) => {
+    const handleDateChange = useCallback((date, field) => {
         setEmployee(prev => ({ ...prev, [field]: date }));
-    };
+    }, []);
 
     /**
-     * Configuration des options d'états pour le Select
-     * Conversion du format pour react-select
+     * handleDepartmentChange : Gère le changement de département
+     * S'active quand on choisit un nouveau département
      */
-    const stateOptions = states.map(state => ({
-        value: state.abbreviation,
-        label: state.name
-    }));
-
-    /**
-     * Gère la sélection du département
-     * @param {Object} selectedOption - Option sélectionnée
-     * @param {Object} meta - Métadonnées incluant le nom du champ
-     */
-    const handleDepartmentChange = (selectedOption, { name }) => {
+    const handleDepartmentChange = useCallback((selectedOption, { name }) => {
         setEmployee(prev => ({ ...prev, [name]: selectedOption.value }));
-    };
+    }, []);
 
     /**
-     * Gère la soumission du formulaire
-     * @param {React.FormEvent} e - Événement de soumission
+     * closeModal : Ferme une fenêtre pop-up
+     * Comme fermer une notification après l'avoir lue
      */
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        // Ajout de l'employé au store
-        addEmployee(employee);
-
-        // Affichage des modales de confirmation
-        setModals({
-            success: true,
-            details: true
-        });
-
-        // Réinitialisation du formulaire
-        setEmployee({
-            firstName: '',
-            lastName: '',
-            dateOfBirth: null,
-            startDate: null,
-            street: '',
-            city: '',
-            state: '',
-            zipCode: '',
-            department: 'Sales'
-        });
-    };
-
-    /**
-     * Ferme une modale spécifique
-     * @param {string} modalName - Nom de la modale à fermer
-     */
-    const closeModal = (modalName) => {
+    const closeModal = useCallback((modalName) => {
         setModals(prev => ({ ...prev, [modalName]: false }));
-    };
+    }, []);
 
+    /**
+     * handleSubmit : Gère l'envoi du formulaire
+     * C'est l'action finale quand on clique sur "Sauvegarder"
+     */
+    const handleSubmit = useCallback((e) => {
+        e.preventDefault(); // Empêche le rechargement de la page
+        addEmployee(employee); // Sauvegarde l'employé
+        setModals({ success: true, details: true }); // Affiche les confirmations
+        setEmployee(INITIAL_EMPLOYEE); // Réinitialise le formulaire
+    }, [employee, addEmployee]);
+
+    // Prépare la liste des états pour le menu déroulant
+    const stateOptions = useMemo(() =>
+        states.map(state => ({
+            value: state.abbreviation,
+            label: state.name
+        })),
+        []
+    );
+
+    // ======= RENDU DE L'INTERFACE =======
+    // C'est la partie qui décrit ce qu'on voit à l'écran
     return (
         <>
-            {/* SEO et métadonnées */}
+            {/* Gestion du titre de la page et des métadonnées */}
             <Helmet>
-                <title>HRnet - Create New Employee</title>
+                <title>HRnet - Create Employee</title>
                 <meta name="description" content="Create a new employee. Enter employee details." />
+                <link rel="preload" href="/assets/form-styles.css" as="style" />
             </Helmet>
 
             <div className="employee-container">
+                <div className="logo-container">
+                    <img
+                        src={logo}
+                        alt="Logo WealthHealth"
+                    />
+                </div>
                 {/* Titre principal */}
-                <h1>HRnet Employee Creation</h1>
+                <h1>HRnet</h1>
 
-                {/* Navigation */}
+                {/* Lien vers la liste des employés */}
                 <div className="navigation">
                     <Link to="/employee-list" className="nav-link">
                         View Current Employees
@@ -165,168 +219,142 @@ function CreateEmployee() {
 
                 {/* Section du formulaire */}
                 <div className="form-section">
+                    {/* Zone d'attente pendant le chargement */}
                     <Suspense fallback={
-                        <div className="loading-container">
+                        <div className="loading-container" role="alert" aria-busy="true">
                             <div className="loading-spinner" />
                         </div>
                     }>
-                        <form onSubmit={handleSubmit}>
+                        {/* Le formulaire lui-même */}
+                        <form onSubmit={handleSubmit} noValidate>
                             <div className="form-grid">
-                                {/* Informations personnelles */}
-                                <div className="form-group">
-                                    <label htmlFor="firstName">First Name</label>
-                                    <input
-                                        type="text"
-                                        id="firstName"
-                                        className="form-input"
-                                        value={employee.firstName}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
+                                {/* Champs d'informations personnelles */}
+                                <FormField
+                                    label="First Name"
+                                    id="firstName"
+                                    value={employee.firstName}
+                                    onChange={handleInputChange}
+                                />
 
-                                <div className="form-group">
-                                    <label htmlFor="lastName">Last Name</label>
-                                    <input
-                                        type="text"
-                                        id="lastName"
-                                        className="form-input"
-                                        value={employee.lastName}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
+                                <FormField
+                                    label="Last Name"
+                                    id="lastName"
+                                    value={employee.lastName}
+                                    onChange={handleInputChange}
+                                />
 
                                 {/* Sélecteurs de date */}
-                                <div className="form-group">
-                                    <label htmlFor="dateOfBirth">Date of Birth</label>
-                                    <div className="date-picker-container">
-                                        <DatePicker
-                                            id="dateOfBirth"
-                                            selected={employee.dateOfBirth}
-                                            onChange={(date) => handleDateChange(date, 'dateOfBirth')}
-                                            className="date-picker-input"
-                                            required
-                                            placeholderText="Select date"
-                                        />
-                                    </div>
-                                </div>
+                                <DatePickerField
+                                    label="Date of Birth"
+                                    id="dateOfBirth"
+                                    selected={employee.dateOfBirth}
+                                    onChange={(date) => handleDateChange(date, 'dateOfBirth')}
+                                />
 
-                                <div className="form-group">
-                                    <label htmlFor="startDate">Start Date</label>
-                                    <div className="date-picker-container">
-                                        <DatePicker
-                                            id="startDate"
-                                            selected={employee.startDate}
-                                            onChange={(date) => handleDateChange(date, 'startDate')}
-                                            className="date-picker-input"
-                                            required
-                                            placeholderText="Select date"
-                                        />
-                                    </div>
-                                </div>
+                                <DatePickerField
+                                    label="Start Date"
+                                    id="startDate"
+                                    selected={employee.startDate}
+                                    onChange={(date) => handleDateChange(date, 'startDate')}
+                                />
 
-                                {/* Informations d'adresse */}
-                                <div className="form-group">
-                                    <label htmlFor="street">Street</label>
-                                    <input
-                                        type="text"
-                                        id="street"
-                                        className="form-input"
-                                        value={employee.street}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
+                                {/* Champs d'adresse */}
+                                <FormField
+                                    label="Street"
+                                    id="street"
+                                    value={employee.street}
+                                    onChange={handleInputChange}
+                                />
 
-                                <div className="form-group">
-                                    <label htmlFor="city">City</label>
-                                    <input
-                                        type="text"
-                                        id="city"
-                                        className="form-input"
-                                        value={employee.city}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
+                                <FormField
+                                    label="City"
+                                    id="city"
+                                    value={employee.city}
+                                    onChange={handleInputChange}
+                                />
 
+                                {/* Menu déroulant pour l'état */}
                                 <div className="form-group">
                                     <label htmlFor="state">State</label>
                                     <Select
-                                        id="state"
+                                        inputId="state"
                                         options={stateOptions}
                                         value={stateOptions.find(option => option.value === employee.state)}
                                         onChange={handleStateChange}
                                         className="custom-select"
                                         classNamePrefix="react-select"
-                                        placeholder="Select State"
+                                        aria-label="State"
                                         required
                                     />
                                 </div>
 
-                                <div className="form-group">
-                                    <label htmlFor="zipCode">Zip Code</label>
-                                    <input
-                                        type="number"
-                                        id="zipCode"
-                                        className="form-input"
-                                        value={employee.zipCode}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
+                                <FormField
+                                    label="Zip Code"
+                                    id="zipCode"
+                                    type="number"
+                                    value={employee.zipCode}
+                                    onChange={handleInputChange}
+                                />
 
-                                {/* Sélection du département */}
+                                {/* Menu déroulant pour le département */}
                                 <div className="form-group">
                                     <label htmlFor="department">Department</label>
                                     <Select
-                                        id="department"
+                                        inputId="department"
                                         name="department"
                                         options={DEPARTMENT_OPTIONS}
                                         value={DEPARTMENT_OPTIONS.find(option => option.value === employee.department)}
                                         onChange={handleDepartmentChange}
                                         className="custom-select"
                                         classNamePrefix="react-select"
-                                        placeholder="Select Department"
+                                        aria-label="Department"
                                         required
                                     />
                                 </div>
                             </div>
 
-                            {/* Bouton de soumission */}
+                            {/* Bouton de sauvegarde */}
                             <div className="submit-container">
                                 <button type="submit" className="submit-button">
-                                    Create Employee
+                                    Save
                                 </button>
                             </div>
                         </form>
                     </Suspense>
                 </div>
 
-                {/* Modales de feedback */}
-                <Modal
-                    isOpen={modals.success}
-                    onClose={() => closeModal('success')}
-                    title="Success"
-                >
-                    <p>Employee Created Successfully!</p>
-                </Modal>
+                {/* Fenêtres pop-up de confirmation */}
+                <Suspense fallback={null}>
+                    {/* Message de succès */}
+                    {modals.success && (
+                        <Modal
+                            isOpen={true}
+                            onClose={() => closeModal('success')}
+                            title="Success"
+                        >
+                            <p>Employee Created Successfully!</p>
+                        </Modal>
+                    )}
 
-                <Modal
-                    isOpen={modals.details}
-                    onClose={() => closeModal('details')}
-                    title="Employee Details"
-                >
-                    <h3>New Employee Added:</h3>
-                    <p>Name: {employee.firstName} {employee.lastName}</p>
-                    <p>Department: {employee.department}</p>
-                    <p>Start Date: {employee.startDate && employee.startDate.toDateString()}</p>
-                </Modal>
+                    {/* Détails de l'employé créé */}
+                    {modals.details && (
+                        <Modal
+                            isOpen={true}
+                            onClose={() => closeModal('details')}
+                            title="Employee Details"
+                        >
+                            <h3>New Employee Added:</h3>
+                            <p>Name: {employee.firstName} {employee.lastName}</p>
+                            <p>Department: {employee.department}</p>
+                            <p>Start Date: {employee.startDate && employee.startDate.toDateString()}</p>
+                        </Modal>
+                    )}
+                </Suspense>
             </div>
         </>
     );
 }
 
-// Export avec mémoisation pour optimiser les performances
-export default memo(CreateEmployee);
+// Exporte le composant pour l'utiliser ailleurs
+// React.memo évite les re-rendus inutiles
+export default React.memo(CreateEmployee);
